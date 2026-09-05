@@ -1,4 +1,5 @@
 import cookie from "@fastify/cookie"
+import helmet from "@fastify/helmet"
 import rateLimit from "@fastify/rate-limit"
 import session from "@fastify/session"
 import Fastify, { type FastifyInstance } from "fastify"
@@ -18,6 +19,17 @@ export function buildApp(): FastifyInstance {
   }
 
   const sessionStore = new PrismaSessionStore(prisma)
+
+  app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"]
+      }
+    },
+    frameguard: {
+      action: "deny"
+    }
+  })
 
   app.register(rateLimit, {
     max: 100,
