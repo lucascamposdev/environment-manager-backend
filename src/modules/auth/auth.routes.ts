@@ -1,7 +1,9 @@
-import { type FastifyInstance } from "fastify";
-import { login } from "./auth.controller.js";
-
+import { type FastifyInstance } from "fastify"
+import { authController } from "./auth.controller.js"
+import { requireAuth } from "./auth.guard.js"
 
 export async function authRoutes(app: FastifyInstance) {
-  app.get("/login", login);
+  app.post("/login", authController.login)
+  app.post("/logout", { preHandler: requireAuth }, authController.logout)
+  app.get("/me", { preHandler: requireAuth }, authController.me)
 }
