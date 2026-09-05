@@ -1,4 +1,5 @@
 import cookie from "@fastify/cookie"
+import rateLimit from "@fastify/rate-limit"
 import session from "@fastify/session"
 import Fastify, { type FastifyInstance } from "fastify"
 import { Exception } from "./exceptions/Exception.js"
@@ -17,6 +18,11 @@ export function buildApp(): FastifyInstance {
   }
 
   const sessionStore = new PrismaSessionStore(prisma)
+
+  app.register(rateLimit, {
+    max: 100,
+    timeWindow: "1 minute"
+  })
 
   app.register(cookie)
   app.register(session, {
