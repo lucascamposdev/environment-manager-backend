@@ -1,24 +1,18 @@
-import { randomBytes, scryptSync } from "node:crypto"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "../src/generated/prisma/client.js"
+import { hashPassword } from "../src/shared/password.js"
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
 const prisma = new PrismaClient({ adapter })
 
-function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex")
-  const hash = scryptSync(password, salt, 64).toString("hex")
-  return `${salt}:${hash}`
-}
-
 async function main() {
   await prisma.user.upsert({
-    where: { username: "admin" },
-    update: {},
+    where: { email: "admin@example.com" },
+    update: { role: "SUPERADMIN" },
     create: {
-      username: "admin",
-      password: hashPassword("admin"),
-      role: "ADMIN"
+      email: "admin@example.com",
+      password: hashPassword("123456"),
+      role: "SUPERADMIN"
     }
   })
 }

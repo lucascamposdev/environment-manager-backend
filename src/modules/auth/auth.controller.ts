@@ -2,15 +2,19 @@ import { type FastifyReply, type FastifyRequest } from "fastify"
 import { Exception } from "../../exceptions/Exception.js"
 import { parseBody } from "../../shared/validate.js"
 import { authService, type AuthService } from "./auth.service.js"
-import { loginSchema } from "./auth.schema.js"
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  resetPasswordSchema
+} from "./auth.schema.js"
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   login = async (request: FastifyRequest, reply: FastifyReply) => {
-    const { username, password } = parseBody(loginSchema, request.body)
+    const { email, password } = parseBody(loginSchema, request.body)
 
-    const user = await this.authService.validateCredentials(username, password)
+    const user = await this.authService.validateCredentials(email, password)
 
     const previousSessionId = request.session.sessionId
 
@@ -21,7 +25,7 @@ export class AuthController {
       request.sessionStore.destroy(previousSessionId, () => {})
     }
 
-    return reply.send({ id: user.id, username: user.username, role: user.role })
+    return reply.send({ id: user.id, email: user.email, role: user.role })
   }
 
   logout = async (request: FastifyRequest, reply: FastifyReply) => {
@@ -37,7 +41,25 @@ export class AuthController {
       throw new Exception("Not authenticated", 401)
     }
 
-    return reply.send({ id: user.id, username: user.username, role: user.role })
+    return reply.send({ id: user.id, email: user.email, role: user.role })
+  }
+
+  forgotPassword = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { email } = parseBody(forgotPasswordSchema, request.body)
+
+    const mailMessage = await this.authService.requestPasswordReset(email)
+
+    return reply.send(mailMessage)
+  }
+
+  resetPassword = async (request: FastifyRequest, reply: FastifyReply) => {
+    const { token, password } = parseBody(resetPasswordSchema, request.body)
+
+    await this.authService.resetPassword(token, password)
+
+    return reply
+      .status(200)
+      .send({ message: "Password redefined successfully!" })
   }
 }
 

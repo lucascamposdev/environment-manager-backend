@@ -19,12 +19,13 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  Int                  @id @default(autoincrement())
+  email               String               @unique
+  password            String
+  role                Role                 @default(USER)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
 }
@@ -38,4 +39,16 @@ model Session {
 
   @@index([expiresAt])
   @@map("sessions")
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
