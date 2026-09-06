@@ -3,7 +3,7 @@ import { prisma } from "../../lib/prisma.js"
 import { hashPassword, verifyPassword } from "../../shared/password.js"
 import { generateToken, hashToken } from "../../shared/token.js"
 
-const RESET_TOKEN_TTL_MS = 1000 * 60 * 60
+const RESET_TOKEN_TTL_MS = 1000 * 60 * 10
 
 export class AuthService {
   async validateCredentials(email: string, password: string) {
