@@ -25,7 +25,14 @@ export class AuthController {
       request.sessionStore.destroy(previousSessionId, () => {})
     }
 
-    return reply.send({ id: user.id, email: user.email, role: user.role })
+    const csrfToken = await reply.generateCsrf()
+
+    return reply.send({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      csrfToken
+    })
   }
 
   logout = async (request: FastifyRequest, reply: FastifyReply) => {
@@ -42,6 +49,12 @@ export class AuthController {
     }
 
     return reply.send({ id: user.id, email: user.email, role: user.role })
+  }
+
+  csrf = async (request: FastifyRequest, reply: FastifyReply) => {
+    const csrfToken = await reply.generateCsrf()
+
+    return reply.send({ csrfToken })
   }
 
   forgotPassword = async (request: FastifyRequest, reply: FastifyReply) => {

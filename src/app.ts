@@ -1,8 +1,9 @@
 import cookie from "@fastify/cookie"
+import csrfProtection from "@fastify/csrf-protection"
 import helmet from "@fastify/helmet"
 import rateLimit from "@fastify/rate-limit"
 import session from "@fastify/session"
-import Fastify, { type FastifyInstance } from "fastify"
+import Fastify, { type FastifyError, type FastifyInstance } from "fastify"
 import { Exception } from "./exceptions/Exception.js"
 import { prisma } from "./lib/prisma.js"
 import { PrismaSessionStore } from "./lib/session-store.js"
@@ -10,12 +11,14 @@ import { registerRoutes } from "./routes/index.js"
 
 export function buildApp(): FastifyInstance {
   const app = Fastify({
-    logger: false
+    logger: true
   })
 
   const sessionSecret = process.env.SESSION_SECRET
   if (!sessionSecret || sessionSecret.length < 32) {
-    throw new Error("SESSION_SECRET must be set to a string of at least 32 characters")
+    throw new Error(
+      "SESSION_SECRET must be set to a string of at least 32 characters"
+    )
   }
 
   const sessionStore = new PrismaSessionStore(prisma)
@@ -49,9 +52,16 @@ export function buildApp(): FastifyInstance {
       maxAge: 1000 * 60 * 60 * 24 * 7
     }
   })
+  app.register(csrfProtection, {
+    sessionPlugin: "@fastify/session"
+  })
 
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error: FastifyError | Exception, _request, reply) => {
     if (error instanceof Exception) {
+      return reply.status(error.statusCode).send({ message: error.message })
+    }
+
+    if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
       return reply.status(error.statusCode).send({ message: error.message })
     }
 

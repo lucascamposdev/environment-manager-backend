@@ -17,6 +17,7 @@
   "type": "module",
   "dependencies": {
     "@fastify/cookie": "^11.1.2",
+    "@fastify/csrf-protection": "^8.0.1",
     "@fastify/helmet": "^13.1.1",
     "@fastify/rate-limit": "^11.2.0",
     "@fastify/session": "^11.1.2",
@@ -34,5 +35,9 @@
     "prisma": "^7.10.0",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "mysql2": "^3.24.3",
+    "deepmerge-ts": "^8.0.2"
   }
 }

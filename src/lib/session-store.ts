@@ -11,10 +11,15 @@ export class PrismaSessionStore {
 
   async get(sessionId: string, callback: CallbackSession): Promise<void> {
     try {
-      const session = await this.prisma.session.findUnique({ where: { sid: sessionId } })
+      const session = await this.prisma.session.findUnique({
+        where: { sid: sessionId }
+      })
 
       if (!session || session.expiresAt.getTime() <= Date.now()) {
-        if (session) await this.prisma.session.delete({ where: { sid: sessionId } }).catch(() => {})
+        if (session)
+          await this.prisma.session
+            .delete({ where: { sid: sessionId } })
+            .catch(() => {})
         return callback(null, null)
       }
 
@@ -24,9 +29,15 @@ export class PrismaSessionStore {
     }
   }
 
-  async set(sessionId: string, session: Session, callback: Callback): Promise<void> {
+  async set(
+    sessionId: string,
+    session: Session,
+    callback: Callback
+  ): Promise<void> {
     try {
-      const expiresAt = session.cookie?.expires ? new Date(session.cookie.expires) : new Date(Date.now() + DEFAULT_TTL_MS)
+      const expiresAt = session.cookie?.expires
+        ? new Date(session.cookie.expires)
+        : new Date(Date.now() + DEFAULT_TTL_MS)
 
       await this.prisma.session.upsert({
         where: { sid: sessionId },

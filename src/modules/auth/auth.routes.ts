@@ -15,8 +15,13 @@ export async function authRoutes(app: FastifyInstance) {
     { config: bruteForceRateLimit },
     authController.login
   )
-  app.post("/logout", { preHandler: requireAuth }, authController.logout)
+  app.post(
+    "/logout",
+    { preHandler: [requireAuth, app.csrfProtection] },
+    authController.logout
+  )
   app.get("/me", { preHandler: requireAuth }, authController.me)
+  app.get("/csrf", { preHandler: requireAuth }, authController.csrf)
   app.post(
     "/forgot-password",
     { config: bruteForceRateLimit },
